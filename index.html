@@ -493,14 +493,6 @@
       return String(n);
     }
 
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-
-    async function corsFetch(url){
-      const res = await fetch(CORS_PROXY + encodeURIComponent(url));
-      if (!res.ok) throw new Error('proxy fetch failed: ' + url);
-      return res.json();
-    }
-
     function paintStats(card, { visits, favorites, playing }){
       const visitsEl = card.querySelector('.visits');
       const favEl = card.querySelector('.favorites');
@@ -519,7 +511,9 @@
     async function resolveUniverseId(card){
       if (card.dataset.universeId) return card.dataset.universeId;
       const placeId = card.dataset.placeId;
-      const { universeId } = await corsFetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
+      const res = await fetch(`https://apis.roproxy.com/universes/v1/places/${placeId}/universe`);
+      if (!res.ok) throw new Error('universe lookup failed');
+      const { universeId } = await res.json();
       card.dataset.universeId = universeId;
       return universeId;
     }
@@ -527,7 +521,9 @@
     async function loadCard(card){
       try{
         const universeId = await resolveUniverseId(card);
-        const gameData = (await corsFetch(`https://games.roblox.com/v1/games?universeIds=${universeId}`)).data[0];
+        const gameRes = await fetch(`https://games.roproxy.com/v1/games?universeIds=${universeId}`);
+        if (!gameRes.ok) throw new Error('game data failed');
+        const gameData = (await gameRes.json()).data[0];
         paintStats(card, {
           visits: gameData.visits,
           favorites: gameData.favoritedCount ?? 0,
