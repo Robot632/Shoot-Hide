@@ -1,2 +1,2 @@
 # Shoot-Hide
-bomboclat
+Site: https://robot632.github.io/Shoot-Hide/
